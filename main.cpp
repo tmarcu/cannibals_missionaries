@@ -1,3 +1,8 @@
+/*
+ * Authors: Tudor Marcu and Vinay Bikkina
+ * Copyright (C) 2013 Tudor Marcu, Vinay Bikkina. All rights reserved.
+ */
+
 #include <iostream>
 #include <list>
 #include <algorithm>
