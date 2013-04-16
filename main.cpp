@@ -6,12 +6,14 @@
 #include <iostream>
 #include <list>
 #include <algorithm>
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #include <stdio.h>
+#include <stdlib.h>
 
 using namespace std;
-
-int counter = 0;
 
 struct node
 {
@@ -48,6 +50,12 @@ struct node
 	}
 };
 
+list<struct node> graph_search(struct node, struct node);
+list<struct node> expand(struct node *);
+bool valid_mode(struct node);
+void print_state(struct node);
+
+int counter = 0;
 const struct node actionr[5] = {{1, 0, -1, 0, NULL, NULL, NULL},
 								{2, 0, -2, 0, NULL, NULL, NULL},
 								{0, 1, 0, -1, NULL, NULL, NULL},
@@ -61,9 +69,70 @@ const struct node actionl[5] = {{-1, 0, 1, 0, NULL, NULL, NULL},
 								{0, -2, 0, 2, NULL, NULL, NULL}};
 
 
-list<struct node> graph_search(struct node, struct node);
-list<struct node> expand(struct node *);
-bool valid_mode(struct node);
+int main(int argc, char *argv[])
+{
+	list<struct node> solution;
+	struct node start = {};
+	struct node goal = {};
+	ifstream startfile(argv[1]);
+	ifstream goalfile(argv[2]);
+	string line;
+	int i;
+	istringstream *iss;
+
+	if (!startfile.good() || !goalfile.good()) {
+		fprintf(stderr, "Could not open files for reading.\n");
+		exit(EXIT_FAILURE);
+	}
+
+	/* Read first and second line of start and goal files */
+	getline(startfile, line);
+	iss = new istringstream(line);
+	iss->str(line);
+	*iss >> start.ml; iss->ignore();
+	*iss >> start.cl; iss->ignore();
+	*iss >> start.bl; iss->ignore();
+	delete iss;
+	getline(startfile, line);
+	iss = new istringstream(line);
+	*iss >> start.mr; iss->ignore();
+	*iss >> start.cr; iss->ignore();
+	*iss >> start.br; iss->ignore();
+	delete iss;
+
+	getline(goalfile, line);
+	iss = new istringstream(line);
+	iss->str(line);
+	*iss >> goal.ml; iss->ignore();
+	*iss >> goal.cl; iss->ignore();
+	*iss >> goal.bl; iss->ignore();
+	delete iss;
+	getline(goalfile, line);
+	iss = new istringstream(line);
+	*iss >> goal.mr; iss->ignore();
+	*iss >> goal.cr; iss->ignore();
+	*iss >> goal.br; iss->ignore();
+	delete iss;
+
+	printf("Running...\n");
+
+	print_state(start);
+	print_state(goal);
+
+	solution = graph_search(start, goal);
+
+	while(!solution.empty()) {
+		print_state(solution.front());
+		solution.pop_front();
+	}
+	printf("Finished\n");
+	printf("Iterations: %d\n", counter);
+	startfile.close();
+	goalfile.close();
+	system("Pause");
+	return 0;
+}
+
 
 void print_state(struct node nprint)
 {
@@ -84,7 +153,6 @@ list<struct node> graph_search(struct node start, struct node goal)
 		while (!fringe.empty()) {
 			curr = fringe.front();
 			fringe.pop_front();
-			counter++;
 
 			if (curr == goal) {
 				while (!(curr == start)) {
@@ -92,7 +160,6 @@ list<struct node> graph_search(struct node start, struct node goal)
 					curr = *curr.parent;
 				}
 				solution.push_front(start);
-
 				return solution;
 			}
 
@@ -107,6 +174,7 @@ list<struct node> graph_search(struct node start, struct node goal)
 				fringe.insert(fringe.begin(), expanded.begin(), expanded.end());
 				/* For some reason GCC does not like splice... works in xcode or visual studio though
 				fringe.splice(fringe.begin(), expand(storenode)); */
+				counter++;
 
 			}
 		}
@@ -141,23 +209,4 @@ bool valid_mode(struct node newnode)
 		return false;
 
 	return true;
-}
-
-int main(int argc, char *argv[])
-{
-	list<struct node> solution;
-	printf("Running...\n");
-	struct node start = {0, 0, 3, 3, false, true, NULL};
-	struct node goal = {3, 3, 0, 0, true, false , NULL};
-
-	solution = graph_search(start, goal);
-
-	while(!solution.empty()) {
-		print_state(solution.front());
-		solution.pop_front();
-	}
-	printf("Finished\n");
-	printf("Iterations: %d\n", counter);
-	system("Pause");
-	return 0;
 }
