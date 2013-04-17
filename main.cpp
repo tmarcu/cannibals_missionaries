@@ -50,10 +50,10 @@ struct node
 	}
 };
 
-list<struct node> graph_search(struct node, struct node);
+list<struct node> graph_search(struct node, struct node, bool mode);
 list<struct node> expand(struct node *);
 bool valid_mode(struct node);
-void print_state(struct node);
+void print_state(struct node, ofstream*);
 
 int counter = 0;
 const struct node actionr[5] = {{1, 0, -1, 0, NULL, NULL, NULL},
@@ -76,6 +76,13 @@ int main(int argc, char *argv[])
 	struct node goal = {};
 	ifstream startfile(argv[1]);
 	ifstream goalfile(argv[2]);
+	string algmode = argv[3];
+	ofstream output(argv[4]);
+	bool mode;
+	if (algmode.compare("bfs") == 0)
+		mode = true;
+	else if (algmode.compare("dfs") == 0)
+		mode = false;
 	string line;
 	int i;
 	istringstream *iss;
@@ -116,31 +123,33 @@ int main(int argc, char *argv[])
 
 	printf("Running...\n");
 
-	print_state(start);
-	print_state(goal);
-
-	solution = graph_search(start, goal);
+	solution = graph_search(start, goal, mode);
 
 	while(!solution.empty()) {
-		print_state(solution.front());
+		print_state(solution.front(), &output);
 		solution.pop_front();
 	}
 	printf("Finished\n");
 	printf("Iterations: %d\n", counter);
 	startfile.close();
 	goalfile.close();
-	system("Pause");
+	output.close();
+
 	return 0;
 }
 
 
-void print_state(struct node nprint)
+void print_state(struct node nprint, ofstream *out)
 {
-	printf("Left bank: %d M %d C %d Boat\nRight Bank: %d M %d C %d Boat\n\n",
-			nprint.ml, nprint.cl, nprint.bl, nprint.mr, nprint.cr, nprint.br);
+	cout << "Left Bank: " << nprint.ml  << " M " << nprint.cl << " C " << nprint.bl << " Boat\n";
+	cout << "Right Bank: " << nprint.mr << " M " << nprint.cr << " C " << nprint.br << " Boat\n\n";
+
+	*out << "Left Bank: " << nprint.ml << " M " << nprint.cl << " C " << nprint.bl << " Boat\n";
+	*out << "Right Bank: " << nprint.mr << " M " << nprint.cr << " C " << nprint.br << " Boat\n\n";
 }
 
-list<struct node> graph_search(struct node start, struct node goal)
+/* Breadth first and depth first search */
+list<struct node> graph_search(struct node start, struct node goal, bool mode)
 {
 		list<struct node> closed;
 		list<struct node> fringe;
@@ -151,8 +160,13 @@ list<struct node> graph_search(struct node start, struct node goal)
 		fringe.push_front(start);
 
 		while (!fringe.empty()) {
-			curr = fringe.front();
-			fringe.pop_front();
+			if (mode == true) {
+				curr = fringe.front();
+				fringe.pop_front();
+			} else {
+				curr = fringe.back();
+				fringe.pop_back();
+			}
 
 			if (curr == goal) {
 				while (!(curr == start)) {

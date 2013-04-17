@@ -12,3 +12,6 @@
 *.lai
 *.la
 *.a
+
+# Output files
+output.txt
